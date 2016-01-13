@@ -1,304 +1,402 @@
-//
-//  main.cpp
-//  Polynomial
-//
-//  Created by james gavin on 16/1/10.
-//  Copyright Â© 2016å¹´ james gavin. All rights reserved.
-//
-
-#include <iostream>
+#include<iostream>
+#include<stdlib.h>
+#include"stdio.h"
 using namespace std;
+typedef struct
+{  float coef;//ÏµÊı
+   int expn;//Ö¸Êı
+}polynomial;
 
-typedef struct Poly{
-    float coefficient;
-    int index;
-    struct Poly *next;
-}Poly;
+typedef struct LNode
+{ polynomial data;//Á´±íÀàĞÍ
+  struct LNode *next;
+}LNode,*Link;
 
-Poly* inputPoly() {
-    int m;
-    float n;
-    Poly *head, *rear, *s;
-    head = (Poly*)malloc(sizeof(Poly));
-    rear = head;
-    scanf(" %f", &n);
-    scanf(" %d", &m);
-    while(m != 0) {
-        cout<<n<<","<<m<<endl;
-        s = (Poly*)malloc(sizeof(Poly));
-        s->coefficient = n;
-        s->index = m;
-        s->next = nullptr;
-        rear->next = s;
-        rear = s;
-        scanf(" %f", &n);
-        scanf(" %d", &m);
-    }
-    head = head->next;
-    return head;
+void createLink(Link &L,int n);   //´´½¨º¯Êı
+void printList(Link L);            //´òÓ¡¶àÏîÊ½
+void addPolyn(Link &pc,Link pa,Link pb);  //¶àÏîÊ½¼Ó·¨
+void substractPolyn(Link &pc,Link pa,Link pb);   //¶àÏîÊ½¼õ·¨
+void copyLink(Link &pc,Link pa);      //¿½±´Á´±í
+void mulPolyn(Link &pc,Link pa,Link pb);   //¶àÏîÊ½³Ë·¨
+int locateLink(Link pa,Link e);     //ÅĞ¶ÏÖ¸ÊıÊÇ·ñÓĞÏàÍ¬µÄÏî
+void destroyLink(Link &L);     //Ïú»ÙÁ´±í
+int compareNum(int i);      //ÅĞ¶ÏÊäÈëµÄÕûÊıÊÇ²»ÊÇ×Ö·û
+
+void destroyLink(Link &L)   //Ïú»ÙÁ´±í
+{
+ Link p;
+ p=L->next;
+ while(p)   //Ïû³ıÒ»¸ö¸ö½Úµã
+ {
+     L->next=p->next;
+  delete p;
+  p=L->next;
+ }
+ delete L;   //É¾³ıÍ·½Úµã
+ L=NULL;   //Í·Ö¸ÕëÖÃÎªNULL
 }
 
-void sortPoly(Poly* head) {
-    Poly *p, *q, *t;
-    float temp;
-    
-    p = head;
-    while (p != nullptr) {
-        q = p;
-        t = q->next;
-        cout<<"gagagajg";
-        while (t != nullptr) {
-         //   cout<<"gagagajg";
-            if (t->index > q->index) {
-                q = t;
-                t = t->next;
-            }
-            temp = p->index; p->index = q->index; q->index = temp;
-            temp = p->coefficient ; p->coefficient = q->coefficient; q->coefficient = temp;
-            p = p->next;
-        }
-       // p = p->next;
-    }
-}
+void createLink(Link &L,int n)   //´´½¨Á´±í
+{
+  if(L!=NULL){destroyLink(L);}   //Èç¹û²»Îª¿Õ£¬¾ÍÏú»ÙÁ´±í
+  Link p,newp;
+  //int k=0;
+  L=new LNode;
+  L->next=NULL;
+  (L->data).expn=-1;//´´½¨Í·½áµã
+  p=L;
+  for(int i=1;i<=n;i++)
+  {
+    newp=new LNode;
+    cout<<"ÇëÊäÈëµÚ"<<i<<"ÏîµÄÏµÊıºÍÖ¸Êı:"<<endl;
+    cout<<"ÏµÊı:";
+    cin>>(newp->data).coef;
 
-void printPoly(Poly* head) {
-    Poly* p;
-    int firstFlag = 1;
-    
-    p = head;
-    
-    while (p != nullptr) {
-        if (firstFlag == 1) {
-            if (p->index == 0) {
-                printf("%5.2f", p->coefficient);
-            } else if (p->coefficient == 1 || p->coefficient == -1) {
-                printf("X^%d", p->index);
-            } else if (p->coefficient > 0) {
-                printf("%5.2fX^%d", p->coefficient, p->index);
-            } else if (p->coefficient < 0) {
-                printf("%5.2fX^%d", p->coefficient, p->index);
-            }
-            firstFlag = 0;
-        } else {
-            if (p->index == 0) {
-                if (p->coefficient > 0) {
-                    printf("+%5.2f", p->coefficient);
-                } else {
-                    printf("%5.2f", p->coefficient);
-                }
-            } else if (p->coefficient == 1) {
-                printf("+X^%d", p->index);
-            } else if (p->coefficient == -1) {
-                printf("X^%d", p->index);
-            } else if (p->coefficient > 0) {
-                printf("+%5.2fX^%d", p->coefficient, p->index);
-            } else if (p->coefficient < 0) {
-                printf("%5.2fX^%d", p->coefficient, p->index);
-            }
-        }
-        p = p->next;
+    cout<<"Ö¸Êı:";
+    cin>>(newp->data).expn;
+    if(newp->data.expn<0){cout<<"ÄúÊäÈëÓĞÎó£¬Ö¸Êı²»ÔÊĞíÎª¸ºÖµ!"<<endl;delete newp;i--;continue;}
+    newp->next=NULL;
+    p=L;//ÖØĞÂÖ¸ÏòÍ·Ö¸Õë
+    if(newp->data.coef==0){cout<<"ÏµÊıÎªÁã£¬ÖØĞÂÊäÈë!"<<endl;delete newp;i--;continue;}
+    while((p->next!=NULL)&&((p->next->data).expn<(newp->data).expn))//°´ÕÕ¶àÏîÊ½Ö¸Êı´ÎĞòµ÷Õû
+    {p=p->next;}
+    if(!locateLink( L, newp))   //ÊÇ·ñÏàÍ¬Ö¸ÊıµÄÏî
+    {
+     newp->next=p->next;     //²åÈëÁ´±íLÖĞ
+     p->next=newp;
     }
-    printf("\n");
-}
-
-Poly* addPoly(Poly* headone, Poly* headtwo) {
-    Poly *heads, *p, *q, *s, *r;
-    
-    float csum;
-    p = headone;
-    q = headtwo;
-    
-    heads = (Poly*)malloc(sizeof(Poly));
-    r = heads;
-    
-    while (p != nullptr && q != nullptr) {
-        if(p->index == q->index) {
-            csum = p->coefficient + q->coefficient;
-            if (csum != 0) {
-                s = (Poly*)malloc(sizeof(Poly));
-                s->coefficient = csum;
-                s->index = q->index;
-                r->next = s;
-                r = s;
-            }
-            q = q->next;
-            p = p->next;
-        } else if(p->index < q->index) {
-            s = (Poly*)malloc(sizeof(Poly));
-            s->coefficient = q->coefficient;
-            s->index = q->index;
-            r->next = s;
-            r = s;
-            q = q->next;
-        } else {
-            s = (Poly*)malloc(sizeof(Poly));
-            s->coefficient = p->coefficient;
-            s->index = p->index;
-            r->next = s;
-            r = s;
-            p = p->next;
-        }
+    else
+    {
+     cout<<"ÊäÈëµÄ¸ÃÏîÖ¸ÊıÓë¶àÏîÊ½ÖĞÒÑ´æÔÚµÄÄ³ÏîÏàÍ¬,ÇëÖØĞÂ´´½¨Ò»¸öÕıÈ·µÄ¶àÏîÊ½"<<endl;
+     delete newp;   //É¾³ı½Úµã
+     destroyLink(L);   //Ïú»ÙÁ´±í
+     createLink(L,n);   //´´½¨Á´±í
+     break;
     }
-    
-    while (p != nullptr) {
-        s = (Poly*)malloc(sizeof(Poly));
-        s->coefficient = p->coefficient;
-        s->index = p->index;
-        r->next = s;
-        r = s;
-        p = p->next;
-    }
-    
-    while (q != nullptr) {
-        s = (Poly*)malloc(sizeof(Poly));
-        s->coefficient = q->coefficient;
-        s->index = q->index;
-        r->next = s;
-        r = s;
-        q = q->next;
-    }
-    r->next = nullptr;
-    heads = heads->next;
-    return heads;
-}
-
-Poly* subPoly(Poly* headone, Poly* headtwo) {
-    Poly *heads, *p, *q, *s, *r;
-    
-    float csum;
-    p = headone;
-    q = headtwo;
-    
-    heads = (Poly*)malloc(sizeof(Poly));
-    r = heads;
-    
-    while (p != nullptr && q != nullptr) {
-        if(p->index == q->index) {
-            csum = p->coefficient - q->coefficient;
-            if (csum != 0) {
-                s = (Poly*)malloc(sizeof(Poly));
-                s->coefficient = csum;
-                s->index = q->index;
-                r->next = s;
-                r = s;
-            }
-            q = q->next;
-            p = p->next;
-        } else if(p->index < q->index) {
-            s = (Poly*)malloc(sizeof(Poly));
-            s->coefficient = q->coefficient;
-            s->index = q->index;
-            r->next = s;
-            r = s;
-            q = q->next;
-        } else {
-            s = (Poly*)malloc(sizeof(Poly));
-            s->coefficient = p->coefficient;
-            s->index = p->index;
-            r->next = s;
-            r = s;
-            p = p->next;
-        }
-    }
-    
-    while (p != nullptr) {
-        s = (Poly*)malloc(sizeof(Poly));
-        s->coefficient = p->coefficient;
-        s->index = p->index;
-        r->next = s;
-        r = s;
-        p = p->next;
-    }
-    
-    while (q != nullptr) {
-        s = (Poly*)malloc(sizeof(Poly));
-        s->coefficient = q->coefficient;
-        s->index = q->index;
-        r->next = s;
-        r = s;
-        q = q->next;
-    }
-    r->next = nullptr;
-    heads = heads->next;
-    return heads;
-}
-
-void add_main() {
-    Poly *a, *b, *c;
-    
-    cout<<"\nè¾“å…¥ç¬¬ä¸€ä¸ªä¸€å…ƒå¤šé¡¹å¼ï¼š\nç³»æ•°  æŒ‡æ•°\n";
-    a = inputPoly();
-    sortPoly(a);
-    
-    cout<<"\nè¾“å…¥ç¬¬äºŒä¸ªä¸€å…ƒå¤šé¡¹å¼ï¼š\nç³»æ•°  æŒ‡æ•°\n";
-    b = inputPoly();
-    sortPoly(b);
-    
-    c = addPoly(a, b);
-    
-    cout<<"ç¬¬ä¸€ä¸ªä¸€å…ƒå¤šé¡¹å¼ï¼š";
-    printPoly(a);
-    cout<<"ç¬¬äºŒä¸ªä¸€å…ƒå¤šé¡¹å¼ï¼š";
-    printPoly(b);
-    cout<<"ä¸¤ä¸ªå¼å­ç›¸åŠ å¦‚ä¸‹ï¼š"<<endl;
-    printPoly(c);
-}
-
-void sub_main() {
-    Poly *a, *b, *c;
-    
-    cout<<"\nè¾“å…¥ç¬¬ä¸€ä¸ªä¸€å…ƒå¤šé¡¹å¼ï¼š\nç³»æ•°  æŒ‡æ•°\n";
-    a = inputPoly();
-    sortPoly(a);
-    
-    cout<<"\nè¾“å…¥ç¬¬äºŒä¸ªä¸€å…ƒå¤šé¡¹å¼ï¼š\nç³»æ•°  æŒ‡æ•°\n";
-    b = inputPoly();
-    sortPoly(b);
-    
-    c = subPoly(a, b);
-    
-    cout<<"ç¬¬ä¸€ä¸ªä¸€å…ƒå¤šé¡¹å¼ï¼š";
-    printPoly(a);
-    cout<<"ç¬¬äºŒä¸ªä¸€å…ƒå¤šé¡¹å¼ï¼š";
-    printPoly(b);
-    cout<<"ä¸¤ä¸ªå¼å­ç›¸å‡å¦‚ä¸‹ï¼š"<<endl;
-    printPoly(c);
-}
-
-void open() {
-    system("cls");
-    cout<<"\n********************************************************\n";
-    cout<<"åŠŸèƒ½ï¼š* 1ï¼šä¸¤ä¸ªä¸€å…ƒå¤šé¡¹å¼ç›¸åŠ ï¼›* 2ï¼šä¸¤ä¸ªä¸€å…ƒå¤šé¡¹å¼ç›¸å‡ï¼›* 0ï¼šé€€å‡º*";
-    cout<<"\n********************************************************\n\nè¯·é€‰æ‹©æ“ä½œ:";
+  }
 }
 
 
-int main(int argc, const char * argv[]) {
-    int choose = -1;
-    open();
-    while (choose != 0) {
-        scanf(" %d", &choose);
-        getchar();
-        switch (choose) {
-            case 0:
-                return 0;
-            case 1:
-                cout<<"ä¸¤ä¸ªä¸€å…ƒå¤šé¡¹å¼ç›¸åŠ \n";
-                add_main();
-                choose = -1;
-                open();
-                break;
-            case 2:
-                cout<<"ä¸¤ä¸ªä¸€å…ƒå¤šé¡¹å¼ç›¸å‡\n";
-                sub_main();
-                choose = -1;
-                open();
-                break;
-            default:
-                cout<<"å°šæœªæ‰©å±•ï¼Œæ•¬è¯·æœŸå¾…â€¦â€¦\n";
-                open();
-                break;
-        }
-    }
+/*ÅĞ¶ÏÖ¸ÊıÊÇ·ñÓë¶àÏîÊ½ÖĞÒÑ´æÔÚµÄÄ³ÏîÏàÍ¬*/
+int locateLink(Link L,Link e)
+{
+ Link p;
+ p=L->next;
+ while(p!=NULL&&(e->data.expn!=p->data.expn))  //Ö¸Êı²»Í¬
+  p=p->next;
+ if(p==NULL)  //ÈôÎª¿Õ£¬ÔòÃ»ÓĞÏàÍ¬Ïî
     return 0;
+ else return 1;
+}
+
+
+/*Êä³öÁ´±í*/
+void printList(Link L)
+{
+  Link p;
+
+  if(L==NULL||L->next==NULL) cout<<"¸ÃÒ»Ôª¶àÏîÊ½Îª¿Õ£¡"<<endl;
+  else
+  {
+   p=L->next;
+   //µÚÒ»ÏîÔªËØ
+     if((p->data).coef>0)   //ÏµÊı´óÓÚ0
+    {
+    if((p->data).expn==0)   //Ö¸ÊıµÈÓÚ0,Êä³öÏµÊı
+         cout<<(p->data).coef;
+       else if((p->data).coef==1&&(p->data).expn==1)  //ÏµÊıµÈÓÚ1£¬Ö¸ÊıµÈÓÚ1
+           cout<<"x";
+       else if((p->data).coef==1&&(p->data).expn!=1)   //ÏµÊıµÈÓÚ1£¬Ö¸Êı²»µÈÓÚ1
+              cout<<"x^"<<(p->data).expn;
+       else  if((p->data).expn==1&&(p->data).coef!=1)   //ÏµÊı²»µÈÓÚ1£¬Ö¸ÊıµÈÓÚ1
+              cout<<(p->data).coef<<"x";
+       else cout<<(p->data).coef<<"x^"<<(p->data).expn;  //Êä³öÆäËûÇé¿ö
+    }
+     if((p->data).coef<0)   //ÏµÊıĞ¡ÓÚ0
+      {
+       if((p->data).expn==0)   //Ö¸ÊıµÈÓÚ0
+         cout<<(p->data).coef;
+       else if(p->data.coef==-1&&p->data.expn==1)  //ÏµÊıµÈÓÚ-1£¬Ö¸ÊıµÈÓÚ1
+        cout<<"-x";
+          else if(p->data.coef==-1&&p->data.expn!=1)  //ÏµÊıµÈÓÚ-1£¬Ö¸Êı²»µÈÓÚ1
+              cout<<"-x^"<<p->data.expn;
+       else if(p->data.expn==1)   //Ö¸ÊıµÈÓÚ1
+              cout<<p->data.coef<<"x";
+          else  cout<<(p->data).coef<<"x^"<<(p->data).expn;  //Êä³öÆäËûÇé¿ö
+      }
+  p=p->next;
+  //·ÇµÚÒ»ÏîÔªËØ
+  while(p!=NULL)
+  {
+   if((p->data).coef>0)
+   {
+    if((p->data).expn==0)
+     cout<<"+"<<(p->data).coef;
+          else if((p->data).expn==1&&(p->data).coef!=1)
+     cout<<"+"<<(p->data).coef<<"x";
+          else if((p->data).expn==1&&(p->data).coef==1)
+                    cout<<"+"<<"x";
+          else if((p->data).coef==1&&(p->data).expn!=1)
+                                  cout<<"+"<<"x^"<<(p->data).expn;
+          else cout<<"+"<<(p->data).coef<<"x^"<<(p->data).expn;
+   }
+      if((p->data).coef<0)
+   {
+     if((p->data).expn==0)
+     cout<<(p->data).coef;
+   else if(p->data.coef==-1&&p->data.expn==1)
+    cout<<"-x";
+      else if(p->data.coef==-1&&p->data.expn!=1)
+          cout<<"-x^"<<p->data.expn;
+   else if(p->data.expn==1)
+          cout<<p->data.coef<<"x";
+      else  cout<<(p->data).coef<<"x^"<<(p->data).expn;
+   }
+
+    p=p->next;
+  }
+  }
+
+  cout<<endl;
+}
+
+/*°ÑÒ»¸öÁ´±íµÄÄÚÈİ¸´ÖÆ¸øÁíÒ»¸öÁ´±í*/
+void copyLink(Link &pc,Link pa)
+{
+ Link p,q,r;
+ pc=new LNode;
+ pc->next=NULL;
+ r=pc;
+ p=pa;
+ while(p->next!=NULL)  //±éÀúpaÁ´±í£¬Ö±ÖÁÈ«²¿¿½±´Íê
+ {q=new LNode;   //ÁÙÊ±±äÁ¿
+  q->data.coef=p->next->data.coef;   //ÏµÊı¿½±´
+  q->data.expn=p->next->data.expn;   //Ö¸Êı¿½±´
+  r->next=q;     //Î²²å·¨
+  q->next=NULL;
+  r=q;
+  p=p->next;  //ÏÂÒ»¸ö½Úµã
+ }
+}
+
+
+/*½«Á½¸öÒ»Ôª¶àÏîÊ½Ïà¼Ó*/
+void addPolyn(Link &pc,Link pa,Link pb)
+{
+ Link p1,p2,p,pd;
+ copyLink(p1,pa);
+ copyLink(p2,pb);
+ pc=new LNode;
+ pc->next=NULL;
+ p=pc;
+ p1=p1->next;
+ p2=p2->next;
+ while(p1!=NULL&&p2!=NULL)  //Á½¸ö¶àÏîÊ½¶¼²»Îª¿Õ
+ {
+  if(p1->data.expn<p2->data.expn)   //µÚÒ»¸öÖ¸ÊıĞ¡ÓÚµÚ¶ş¸öÖ¸Êı
+  {
+   p->next=p1;   //½«Ò»¸ö¶àÏîÊ½µÄÔªËØ²åÈëPCÁ´±íÖĞ
+   p=p->next;    //ÏòºóÒÆ¶¯
+   p1=p1->next;   //±éÀúÏÂÒ»¸ö
+  }
+  else if(p1->data.expn>p2->data.expn)   //µÚÒ»¸öÖ¸Êı´óÓÚµÚ¶ş¸öÖ¸Êı
+  {
+   p->next=p2;
+   p=p->next;
+   p2=p2->next;
+  }
+  else    //µÚÒ»¸öÖ¸ÊıµÈÓÚµÚ¶ş¸öÖ¸Êı£¬×öÏµÊı¼Ó·¨
+  {
+  // newp=new LNode;
+   p1->data.coef=p1->data.coef+p2->data.coef;
+   //p1->data.expn=p1->data.expn;
+   if(p1->data.coef!=0)   //µ±¼ÓÍêÖ®ºóÏµÊı²»µÈÓÚ0£¬Ôò²åÈëÁ´±íÖĞ
+   {
+    p->next=p1;
+    p=p->next;
+    p1=p1->next;
+    p2=p2->next;
+   }
+   else   //·ñÔò±éÀúÒ»ÏÂ¸ö
+   {
+    pd=p1;
+    p1=p1->next;
+    p2=p2->next;
+    delete pd;
+   }
+
+  }
+
+
+ }
+ if(p1!=NULL)  //µÚÒ»¸ö¶àÏîÊ½²»Îª¿Õ£¬µÚ¶ş¸öÎª¿Õ
+ {
+  p->next=p1;  //½«µÚÒ»¸öÊ£ÓàµÄ¶¼²åÈëµ½PCÁ´±íÖĞ
+ }
+ if(p2!=NULL)
+ {
+  p->next=p2;
+ }
+
+}
+
+/*½«Á½¸ö¶àÏîÊ½Ïà¼õ*/
+void substractPolyn(Link &pc,Link pa,Link pb)
+{
+  Link p,pt;
+  copyLink(pt,pb);   //¿½±´Á´±í
+  p=pt;
+  while(p!=NULL)  //±éÀúµÚ¶ş¸öÁ´±í
+  {
+     (p->data).coef=(-(p->data).coef);   //½«µÚ¶ş¸öÁ´±íÏµÊıÈ«²¿ÖÃ·´
+        p=p->next;   //±éÀúÏÂÒ»¸öÔªËØ
+  }
+  addPolyn(pc,pa,pt);   //×ö¼Ó·¨ÔËËã
+  destroyLink(pt);   //Ïú»ÙÁÙÊ±Á´±í
+}
+//ÇåÆÁº¯Êı
+void Clear()
+{
+ char a;
+ cout<<"Çë°´ »Ø³µ¼ü ¼ÌĞø¡­¡­"<<endl;
+ a=getchar();   //½ÓÊÕ×Ö·û
+ system("cls");
+}
+
+/*½«Á½¸öÒ»Ôª¶àÏîÊ½Ïà³Ë*/
+void mulPolyn(Link &pc,Link pa,Link pb)
+{
+ Link p1,p2,p,pd,newp,t;
+ pc=new LNode;
+ pc->next=NULL;
+ p1=pa->next;  //µÚÒ»¸ö¶àÏîÊ½
+ p2=pb->next;  //µÚ¶ş¸ö¶àÏîÊ½
+ while(p1!=NULL)   //±éÀúµÚÒ»¸ö¶àÏîÊ½È«²¿Ïî
+ {
+  pd=new LNode;
+     pd->next=NULL;
+  p=new LNode;
+  p->next=NULL;
+  t=p;
+  while(p2)   //±éÀúµÚ¶ş¸ö¶àÏîÊ½È«²¿Ïî
+  {
+   newp=new LNode;
+   newp->next=NULL;  //Ã¿Ò»ÏîÏµÊıºÍÖ¸Êı×öÔËËã
+   newp->data.coef=p1->data.coef*p2->data.coef;  //ÏµÊı³ËÏµÊı
+   newp->data.expn=p1->data.expn+p2->data.expn;   //Ö¸ÊıÏà¼Ó
+   t->next=newp;
+   t=t->next;
+   p2=p2->next;  //µÚ¶ş¸ö¶àÏîÊ½µÄÏÂÒ»¸öÔªËØ
+  }
+  addPolyn(pd,pc,p);   //Ã¿¸öÔËËãÒ»´Î³Ë·¨¶¼Óë½á¹ûÁ´±í×ö¼Ó·¨
+  copyLink(pc,pd);
+  p1=p1->next;  //±éÀúµÚÒ»¸ö¶àÏîÊ½µÄÏÂÒ»¸öÔªËØ
+  p2=pb->next;  //ÖØĞÂ¶¨Î»P2Ö¸ÕëÎªµÚ¶ş¸ö¶àÏîÊ½µÄÊ×ÔªËØ
+  destroyLink(p);
+  destroyLink(pd);
+ }
+}
+
+
+
+ //²Ëµ¥º¯Êı
+void menuPrint()
+{
+
+ cout<<"\t***********Ò»Ôª¶àÏîÊ½µÄ¼òµ¥ÔËËã*************"<<endl;
+ cout<<"\t\t 1´´½¨ÒªÔËËãµÄÁ½¸öÒ»Ôª¶àÏîÊ½"<<endl;
+ cout<<"\t\t 2½«Á½¸öÒ»Ôª¶àÏîÊ½Ïà¼Ó"<<endl;
+ cout<<"\t\t 3½«Á½¸öÒ»Ôª¶àÏîÊ½Ïà¼õ"<<endl;
+ cout<<"\t\t 4½«Á½¸öÒ»Ôª¶àÏîÊ½Ïà³Ë"<<endl;
+ cout<<"\t\t 5ÏÔÊ¾Á½¸öÒ»Ôª¶àÏîÊ½"<<endl;
+ cout<<"\t\t 6Ïú»ÙËù´´½¨µÄ¶ş¸ö¶àÏîÊ½"<<endl;
+ cout<<"\t\t 7ÍË³ö"<<endl;
+ cout<<"ÇëÊäÈëÄãÒª½øĞĞµÄ²Ù×÷£¨1-7£©"<<endl;
+}
+
+//ÅĞ¶ÏÊäÈëµÄÕûÊıÊÇ²»ÊÇ×Ö·û
+int compareNum(int i)
+{
+ if(i==-32766)
+  return 0;
+ else return 1;
+}
+
+int main()
+{
+   int n=-32766;
+   Link L,La=NULL,Lb=NULL;
+   int choose;
+   while(1)
+   {
+    menuPrint();
+       cin>>choose;
+    switch(choose)
+    {
+    case 1:
+      cout<<"ÇëÊäÈëÄãÒªÔËËãµÄµÚÒ»¸öÒ»Ôª¶àÏîÊ½µÄÏîÊı:"<<endl;
+            cin>>n;
+   if(compareNum(n)==0){cout<<"ÄúµÄÊäÈëÓĞÎó£¬ÇëÖØĞÂÊäÈë¡­¡­"<<endl;Clear();break;}
+            createLink(La,n);
+            cout<<"ÇëÊäÈëÄãÒªÔËËãµÄµÚ¶ş¸öÒ»Ôª¶àÏîÊ½µÄÏîÊı:"<<endl;
+            cin>>n;
+   if(compareNum(n)==0){cout<<"ÄúµÄÊäÈëÓĞÎó£¬ÇëÖØĞÂÊäÈë¡­¡­"<<endl;Clear();break;}
+            createLink(Lb,n);
+   Clear();
+          break;
+    case 2:
+    if(La==NULL||Lb==NULL){cout<<"ÄúµÄ¶àÏîÊ½´´½¨ÓĞÎó£¬ÇëÖØĞÂÑ¡Ôñ¡­¡­"<<endl;Clear();break;}
+       addPolyn(L,La,Lb);
+          cout<<"Ïà¼ÓµÄÁ½¸öÒ»Ôª¶àÏîÊ½Îª£º"<<endl;
+             printList(La);
+          printList(Lb);
+          cout<<"Ïà¼ÓºóµÄ½á¹ûÎª£º"<<endl;
+          printList(L);
+    Clear();
+    destroyLink(L);
+             break;
+    case 3:
+     if(La==NULL||Lb==NULL){cout<<"ÄúµÄ¶àÏîÊ½´´½¨ÓĞÎó£¬ÇëÖØĞÂÑ¡Ôñ¡­¡­"<<endl;Clear();break;}
+      substractPolyn(L,La,Lb);
+      cout<<"Ïà¼õµÄÁ½¸öÒ»Ôª¶àÏîÊ½Îª£º"<<endl;
+            printList(La);
+         printList(Lb);
+       cout<<"Ïà¼õºóµÄ½á¹ûÎª£º"<<endl;
+       printList(L);
+   Clear();
+   destroyLink(L);
+      break;
+    case 4:
+     if(La==NULL||Lb==NULL){cout<<"ÄúµÄ¶àÏîÊ½´´½¨ÓĞÎó£¬ÇëÖØĞÂÑ¡Ôñ¡­¡­"<<endl;Clear();break;}
+   mulPolyn(L,La,Lb);
+            cout<<"Ïà³ËµÄÁ½¸öÒ»Ôª¶àÏîÊ½Îª£º"<<endl;
+            printList(La);
+         printList(Lb);
+      cout<<"Ïà³ËºóµÄ½á¹ûÎª£º"<<endl;
+      printList(L);
+   destroyLink(L);
+   Clear();
+      break;
+    case 5:
+     if(La==NULL||Lb==NULL){cout<<"ÄúµÄ¶àÏîÊ½´´½¨ÓĞÎó£¬ÇëÖØĞÂÑ¡Ôñ¡­¡­"<<endl;Clear();break;}
+              cout<<"µÚÒ»¸öÒ»Ôª¶àÏîÊ½Îª£º"<<endl;
+           printList(La);
+            cout<<"µÚ¶ş¸öÒ»Ôª¶àÏîÊ½Îª£º"<<endl;
+              printList(Lb);
+     Clear();
+              break;
+    case 6:
+     if(La&&Lb){destroyLink(La);destroyLink(Lb);cout<<"Ïú»Ù³É¹¦£¡"<<endl;Clear();}
+     else
+     { cout<<"¶àÏîÊ½²»´æÔÚ£¬ÇëÖØĞÂÑ¡Ôñ^^^"<<endl;Clear();}
+           break;
+    case 7:
+     exit(0);
+    default:
+     cout<<"ÄúµÄÊäÈëÓĞÎó£¬ÇëÖØĞÂÑ¡Ôñ²Ù×÷¡­¡­"<<endl;Clear();
+     break;
+    }
+
+   }
+   return 0;
 }
